@@ -13,6 +13,7 @@ import {
   Alert,
   Picker,
   ImageBackground,
+  AsyncStorage,
 } from "react-native";
 import log from "./screens/login";
 import { NavigationContainer } from "@react-navigation/native";
@@ -20,6 +21,8 @@ import "react-native-gesture-handler";
 import { createStackNavigator } from "@react-navigation/stack";
 
 const Stack = createStackNavigator();
+const axios = require("axios").default;
+const cors = require("cors");
 
 const FadeInView = (props) => {
   const fadeAnim = useRef(new Animated.Value(0)).current; // Initial value for opacity: 0
@@ -47,11 +50,14 @@ const FadeInView = (props) => {
 import minBack from "./assets/minBack.jpg";
 
 export default class Registration extends Component {
-  state = {
-    email: "",
-    password: "",
-    role: "",
-  };
+  constructor(props) {
+    super(props);
+    this.state = {
+      email: "",
+      password: "",
+      role: "",
+    };
+  }
   updateRole = (role) => {
     this.setState({ role: role });
   };
@@ -59,6 +65,39 @@ export default class Registration extends Component {
   onClickListener = (viewId) => {
     Alert.alert("Alert", "Button pressed " + viewId);
   };
+
+  //This is just a demo function is just to see if the data is
+  //being stored in local storage or not
+  userRegister = () => {
+    const { email } = this.state;
+    const { password } = this.state;
+    const { role } = this.state;
+
+    let myitems = {
+      email: email,
+      password: password,
+      role: role,
+    };
+    AsyncStorage.setItem("myitems", JSON.stringify(myitems));
+
+    fetch("http://192.168.0.102:8080/home/addUser", {
+      method: "POST",
+      body: JSON.stringify({
+        userName: email,
+        password: password,
+        userType: role,
+      }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8",
+      },
+    })
+      .then((response) => response.json())
+      .catch((error) => console.log(error));
+    // Displaying results to console
+  };
+
+  // Actual function which is supposed to send data to the DB
+  //http://192.168.0.102:8080/home/addUser
 
   render() {
     const { navigate } = this.props.navigation;
@@ -75,12 +114,14 @@ export default class Registration extends Component {
                 }}
               />
             </FadeInView>
+
             <View>
               <View style={styles.inputContainer}>
                 <TextInput
                   style={styles.inputs}
                   placeholder="Enter username"
                   underlineColorAndroid="transparent"
+                  onChangeText={(email) => this.setState({ email })}
                 />
                 <Image
                   style={styles.inputIcon}
@@ -99,6 +140,7 @@ export default class Registration extends Component {
                   placeholder="Enter password"
                   secureTextEntry={true}
                   underlineColorAndroid="transparent"
+                  onChangeText={(password) => this.setState({ password })}
                 />
                 <Image
                   style={styles.inputIcon}
@@ -117,21 +159,24 @@ export default class Registration extends Component {
             >
               <Picker
                 selectedValue={this.state.role}
-                onValueChange={this.updateRole}
+                onValueChange={
+                  (this.updateRole, (role) => this.setState({ role }))
+                }
                 style={{ width: 300, height: 45, backgroundColor: "#FFF" }}
               >
                 <Picker.Item label="Select Role" color="grey" value="50" />
-                <Picker.Item label="👨‍🎓  Student" value="100" />
-                <Picker.Item label="👨‍🏫  Teacher" value="200" />
+                <Picker.Item label="👨‍🎓  Student" value="student" />
+                <Picker.Item label="👨‍🏫  Teacher" value="teacher" />
               </Picker>
             </View>
 
             <TouchableHighlight
               style={[styles.buttonContainer, styles.loginButton, styles.space]}
-              onPress={() => navigate("SecondPage")}
+              onPress={this.userRegister}
             >
               <Text style={styles.loginText}>Register</Text>
             </TouchableHighlight>
+
             <Image
               style={styles.mountain}
               source={{
