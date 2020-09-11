@@ -20,6 +20,11 @@ import "react-native-gesture-handler";
 import { createStackNavigator } from "@react-navigation/stack";
 
 const Stack = createStackNavigator();
+const axios = require("axios").default;
+let te = "";
+let toGo = "";
+let stu = "STUDENT";
+let tea = "TEACHER";
 
 const FadeInView = (props) => {
   const fadeAnim = useRef(new Animated.Value(0)).current; // Initial value for opacity: 0
@@ -51,13 +56,41 @@ export default class Login extends Component {
     email: "",
     password: "",
     role: "",
+    data: "",
   };
+
   updateRole = (role) => {
     this.setState({ role: role });
   };
 
   onClickListener = (viewId) => {
     Alert.alert("Alert", "Button pressed " + viewId);
+  };
+
+  loginUser = () => {
+    const { email } = this.state;
+    const { password } = this.state;
+    const { role } = this.state;
+
+    let myitems = {
+      email: email,
+      password: password,
+      role: role,
+    };
+
+    axios
+      .post("http://192.168.0.102:8090/loginUser", {
+        userName: email,
+        password: password,
+      })
+      .then(function (response) {
+        console.log(response.data);
+        toGo = response.data;
+        console.log(toGo);
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
   };
 
   render() {
@@ -81,6 +114,7 @@ export default class Login extends Component {
                   style={styles.inputs}
                   placeholder="Enter username"
                   underlineColorAndroid="transparent"
+                  onChangeText={(email) => this.setState({ email })}
                 />
                 <Image
                   style={styles.inputIcon}
@@ -99,6 +133,7 @@ export default class Login extends Component {
                   placeholder="Enter password"
                   secureTextEntry={true}
                   underlineColorAndroid="transparent"
+                  onChangeText={(password) => this.setState({ password })}
                 />
                 <Image
                   style={styles.inputIcon}
@@ -112,7 +147,7 @@ export default class Login extends Component {
             <View>
               <TouchableHighlight
                 style={[styles.buttonContainer, styles.loginButton]}
-                onPress={() => this.onClickListener("login")}
+                onPress={this.loginUser}
               >
                 <Text style={styles.loginText}>Login</Text>
               </TouchableHighlight>
@@ -124,6 +159,7 @@ export default class Login extends Component {
             >
               <Text style={styles.loginText}>Sign up</Text>
             </TouchableHighlight>
+
             <Image
               style={styles.mountain}
               source={{
