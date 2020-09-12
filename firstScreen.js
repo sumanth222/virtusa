@@ -79,14 +79,16 @@ export default class Login extends Component {
     };
 
     axios
-      .post("http://192.168.0.102:8090/loginUser", {
+      .post("http://192.168.0.100:8090/loginUser", {
         userName: email,
         password: password,
       })
       .then(function (response) {
-        console.log(response.data);
         toGo = response.data;
         console.log(toGo);
+        if (toGo != "STUDENT" && toGo != "TEACHER") {
+          alert("Invalid credentials!");
+        }
       })
       .catch(function (error) {
         console.log(error);
@@ -147,7 +149,15 @@ export default class Login extends Component {
             <View>
               <TouchableHighlight
                 style={[styles.buttonContainer, styles.loginButton]}
-                onPress={this.loginUser}
+                onPress={() => {
+                  this.loginUser();
+                  if (toGo === "STUDENT") {
+                    navigate("student");
+                  }
+                  if (toGo === "TEACHER") {
+                    navigate("teacher");
+                  }
+                }}
               >
                 <Text style={styles.loginText}>Login</Text>
               </TouchableHighlight>
